@@ -1,0 +1,71 @@
+Filtering malicious emails: 
+
+Spam, phishing attempts, spear phishing attemps and other malicious content are all classify as malicious emails.
+Here is an example that demonstrates email parsing and spam detection using predefined rules.
+Before running this script, make sure you have Python installed and the "imaplib library" available as that allows you to interact with the IMAP mail servers. 
+You may need to enable access to your email account through IMAP and generate an application-specific password if you're using Gmail or a similar service.
+
+_______________________________________________________________________________________________________________________________________________________________
+
+Don't forget to Replace "your_email@example.com", "your_password", & "imap.example.com" with the email account credentials that you are using & The IMAP server settings.
+This script basically searches for all unseen emails in the inbox & for each unseen email, it fetches the raw email data and parses it.
+Then decodes and prints the subject & sender of each email then check if the subject contains the word "FAST" (you can customize this rule or add more checks based on your requirements).
+It then marks each processed email as seen to prevent reprocessing in future runs.
+_______________________________________________________________________________________________________________________________________________________________
+Lets begin
+
+First you:
+
+import imaplib
+import email
+from email.header import decode_header
+
+#Email account credentials & server settings
+EMAIL = "your_email@example.com"
+PASSWORD = "your_password"
+SERVER = "imap.example.com"
+
+#Connects to the IMAP server
+mail = imaplib.IMAP4_SSL(SERVER)
+mail.login(EMAIL, PASSWORD)
+mail.select("inbox")
+
+# Search for all unseen emails
+status, data = mail.search(None, "UNSEEN")
+
+if status == "OK":
+    for num in data[0].split():
+        # Fetch the email by its unique identifier (UID)
+        status, raw_email = mail.fetch(num, "(RFC822)")
+        
+        if status == "OK":
+            #Parse the raw email data
+            msg = email.message_from_bytes(raw_email[0][1])
+            subject = decode_header(msg["Subject"])[0][0]
+            sender = decode_header(msg["From"])[0][0]
+            
+            #Print email details
+            print("Subject:", subject)
+            print("From:", sender)
+            
+            #Basic spam detection
+            if "FAST" in subject.lower():
+                print("Potential spam detected!")
+            
+            # Marks the email as seen
+            mail.store(num, "+FLAGS", "\\Seen")
+
+#Logout from the email server
+mail.logout()
+
+
+
+
+
+
+
+
+
+
+
+
